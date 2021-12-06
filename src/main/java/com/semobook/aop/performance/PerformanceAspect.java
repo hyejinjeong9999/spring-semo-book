@@ -1,4 +1,4 @@
-package com.semobook.aop;
+package com.semobook.aop.performance;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 public class PerformanceAspect {
 
 //    @Around("execution(* com.semobook..*.UserController.*(..))")  //포인트컷 표현식을 이용한 방법
-    @Around("@annotation(com.semobook.aop.PerformanceCheck)") //annotation을 이용한 방법
-    public Object calculatePerformanceTime(ProceedingJoinPoint joinPoint)  throws Throwable{
+    @Around("@annotation(performanceCheck)") //annotation을 이용한 방법
+    public Object calculatePerformanceTime(ProceedingJoinPoint joinPoint, PerformanceCheck performanceCheck)  throws Throwable{
         try {
             long start = System.currentTimeMillis();
             Object result = joinPoint.proceed();

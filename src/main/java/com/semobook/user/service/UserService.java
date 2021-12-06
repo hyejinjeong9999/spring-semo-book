@@ -8,7 +8,7 @@ import com.semobook.bookReview.repository.BookReviewRepository;
 import com.semobook.common.SemoConstant;
 import com.semobook.common.StatusEnum;
 import com.semobook.recom.domain.ReviewInfo;
-import com.semobook.aop.PerformanceCheck;
+import com.semobook.aop.performance.PerformanceCheck;
 import com.semobook.tools.SecurityTools;
 import com.semobook.tools.StringTools;
 import com.semobook.user.domain.UserInfo;

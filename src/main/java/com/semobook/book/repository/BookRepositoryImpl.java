@@ -3,7 +3,7 @@ package com.semobook.book.repository;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.semobook.book.domain.Book;
-import com.semobook.aop.PerformanceCheck;
+import com.semobook.aop.performance.PerformanceCheck;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
