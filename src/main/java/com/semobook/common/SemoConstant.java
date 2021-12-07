@@ -40,4 +40,5 @@ public class SemoConstant {
     public static final String OPEN_API_KAKAO_BOOK = "https://dapi.kakao.com";
     public static final String KAKAO_AK_BOOK_SEARCH = "KakaoAK a85301089026f3d76b61ac72f59b1d91";
     public static final int TEMP_PW = 8; // 임시 비밀번호 길이
+    public static final String SEMO_BOOK_API_AUTHORIZATION = "Semo h920519";
 }
