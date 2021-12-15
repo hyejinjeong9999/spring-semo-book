@@ -15,10 +15,13 @@ public class Interceptor extends HandlerInterceptorAdapter {
     //컨트롤러에 도착하기전에 동작하는 메소드로 return값이 true면 진행, false면 stop
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String authorization = "";
-        authorization = request.getHeader("Authorization");
-        log.info("Authorization = {}", authorization);
+        String authorization = request.getHeader("Authorization");
+        if (authorization == null) {
+            log.info("Authorization is null");
+            return false;
+        }
         if (!authorization.equals(SEMO_BOOK_API_AUTHORIZATION)) {
+            log.info("Authorization fail = {}", authorization);
             return false;
         }
         return super.preHandle(request, response, handler);
