@@ -233,4 +233,44 @@ public class UserInfoTest {
         assertThat(resultUser.getCreateDate()).isAfter(now);
         assertThat(resultUser.getModifiedDate()).isAfter(now);
     }
+
+    @Test
+    @DisplayName("FIND_ALL_DTO_BY_PROJECTION")
+    void FIND_ALL_DTO_BY_PROJECTION(){
+        //given
+        UserInfo userA = UserInfo.builder()
+                .userId("userA@semo.com")
+                .userPw("semo1234")
+                .userName("userA")
+                .userGender("M")
+                .userBirth("19920519")
+                .build();
+        UserInfo userB = UserInfo.builder()
+                .userId("userB@semo.com")
+                .userPw("semo1234")
+                .userName("userB")
+                .userGender("M")
+                .userBirth("19920519")
+                .build();
+        UserInfo userC = UserInfo.builder()
+                .userId("userC@semo.com")
+                .userPw("semo1234")
+                .userName("userC")
+                .userGender("M")
+                .userBirth("19920519")
+                .build();
+        userRepository.save(userA);
+        userRepository.save(userB);
+        userRepository.save(userC);
+        //when
+        Page<UserInfoDto> results = userRepository.findAllDtoByProjection(PageRequest.of(0, 2));
+//        List<UserInfoDto> results = page.getContent().stream()
+//                .map(r -> new UserInfoDto(r))
+//                .collect(Collectors.toList());
+        //then
+        assertThat(results.getContent().size()).isEqualTo(2);
+        assertThat(results.getContent().get(0).getUserName()).isEqualTo("userA");
+        assertThat(results.getTotalElements()).isEqualTo(3L);
+        assertThat(results.getTotalPages()).isEqualTo(2);
+    }
 }

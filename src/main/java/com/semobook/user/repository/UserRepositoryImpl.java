@@ -1,9 +1,12 @@
 package com.semobook.user.repository;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.semobook.user.domain.UserInfo;
 import com.semobook.user.domain.UserStatus;
+import com.semobook.user.dto.QUserInfoDto;
+import com.semobook.user.dto.UserInfoDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -72,6 +75,45 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                 .where(userNoEq(userNo))
                 .fetchOne();
     }
+
+    @Override
+    public Page<UserInfoDto> findAllDtoByProjection(Pageable pageable) {
+        List<UserInfoDto> results = queryFactory
+                .select(Projections.constructor(UserInfoDto.class,
+                        userInfo.userNo,
+                        userInfo.userId,
+                        userInfo.userStatus,
+                        userInfo.userName,
+                        userInfo.userGender,
+                        userInfo.userBirth,
+                        userInfo.lastConnection,
+                        userInfo.userPriority))
+                .from(userInfo)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long totalCount = queryFactory
+                .selectFrom(userInfo)
+                .fetchCount();
+        return new PageImpl<>(results, pageable, totalCount);
+    }
+
+    @Override
+    public Page<UserInfoDto> findAllDtoByQueryProjection(Pageable pageable) {
+        List<UserInfoDto> results = queryFactory
+                .select(new QUserInfoDto(userInfo.userId, userInfo.userName))
+                .from(userInfo)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long totalCount = queryFactory
+                .selectFrom(userInfo)
+                .fetchCount();
+        return new PageImpl<>(results, pageable, totalCount);
+    }
+
 
     private BooleanExpression userNoEq(Long userNo) {
         return userNo != null ? userInfo.userNo.eq(userNo) : null;

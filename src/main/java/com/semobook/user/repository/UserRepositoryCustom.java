@@ -2,6 +2,7 @@ package com.semobook.user.repository;
 
 import com.semobook.user.domain.UserInfo;
 import com.semobook.user.domain.UserStatus;
+import com.semobook.user.dto.UserInfoDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,4 +21,8 @@ public interface UserRepositoryCustom {
 
     //유저별 원하는 책 가져오기
     UserInfo findByBookWantWithReview(long userNo);
+
+    Page<UserInfoDto> findAllDtoByProjection(Pageable pageable);
+
+    Page<UserInfoDto> findAllDtoByQueryProjection(Pageable pageable);
 }

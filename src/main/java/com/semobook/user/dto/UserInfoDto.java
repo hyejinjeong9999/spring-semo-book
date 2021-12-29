@@ -1,12 +1,15 @@
 package com.semobook.user.dto;
 
+import com.querydsl.core.annotations.QueryProjection;
 import com.semobook.user.domain.UserInfo;
 import com.semobook.user.domain.UserStatus;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
+@NoArgsConstructor
 public class UserInfoDto {
     private long userNo;
     private String userId;
@@ -16,6 +19,12 @@ public class UserInfoDto {
     private String userBirth;
     private LocalDateTime lastConnection;
     private String userPriority;
+
+    @QueryProjection
+    public UserInfoDto(String userId, String userName) {
+        this.userId = userId;
+        this.userName = userName;
+    }
 
     public UserInfoDto(UserInfo userInfo) {
         this.userNo = userInfo.getUserNo();
