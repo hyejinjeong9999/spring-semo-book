@@ -59,8 +59,8 @@ public class BookReviewService {
     @Transactional
     public BookReviewResponse createReview(BookReviewRequest request) {
         log.info("createReview ::");
-        String hMessage = null;
-        StatusEnum hCode = null;
+        String hMessage;
+        StatusEnum hCode;
         log.info("createReview():: request.getUserNo() is {}", request.getUserNo());
         log.info("createReview():: request.getBook().getIsbn() is {}", request.getBook().getIsbn());
         try {

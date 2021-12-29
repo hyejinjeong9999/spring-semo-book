@@ -4,6 +4,8 @@ import com.semobook.book.dto.BookRequest;
 import com.semobook.book.dto.BookResponse;
 import com.semobook.book.dto.BookSearchRequest;
 import com.semobook.book.service.BookService;
+import com.semobook.common.response.ListResponse;
+import com.semobook.common.response.SingleResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,7 +31,7 @@ public class BookController {
      **/
     @Operation(description = "책 등록")
     @PostMapping("/books/new")
-    public ResponseEntity<BookResponse> addBookCon(@Parameter @RequestBody BookRequest bookRequest) {
+    public ResponseEntity<SingleResponse> addBookCon(@Parameter @RequestBody BookRequest bookRequest) {
         log.info("/signup :: userId : {} :: userPw : {} :: userName : {} ===", bookRequest.getIsbn(), bookRequest.getBookName(), bookRequest.getAuthor());
         return ResponseEntity.ok(bookService.addBook(bookRequest));
     }
@@ -42,7 +44,7 @@ public class BookController {
      **/
     @Operation(description = "도서 삭제")
     @DeleteMapping("/books/{isbn}")
-    public ResponseEntity<BookResponse> deleteBookCon(@Parameter @PathVariable String isbn) {
+    public ResponseEntity<SingleResponse> deleteBookCon(@Parameter @PathVariable String isbn) {
         log.info(":: deleteBookCon  :: isbn is {}", isbn);
         return ResponseEntity.ok(bookService.deleteBook(isbn));
     }
@@ -63,7 +65,7 @@ public class BookController {
      **/
     @Operation(description = "책 조회")
     @GetMapping(value = "/books/{isbn}")
-    public ResponseEntity<BookResponse> findBookCon(@Parameter @PathVariable String isbn) {
+    public ResponseEntity<SingleResponse> findBookCon(@Parameter @PathVariable String isbn) {
         log.info("==/findBook {}", isbn);
         return ResponseEntity.ok(bookService.findBook(isbn));
     }
@@ -77,7 +79,7 @@ public class BookController {
      **/
     @Operation(description = "책 조회(리뷰 포함)")
     @GetMapping(value = "/books/review/{isbn}")
-    public ResponseEntity<BookResponse> findBookWithReviewCon(@Parameter @PathVariable String isbn) {
+    public ResponseEntity<SingleResponse> findBookWithReviewCon(@Parameter @PathVariable String isbn) {
         log.info("==/findBookWithReview {}", isbn);
         return ResponseEntity.ok(bookService.findBookWithReview(isbn));
     }
@@ -90,7 +92,7 @@ public class BookController {
      **/
     @Operation(description = "모든 책 조회")
     @GetMapping("/books/all/{page}")
-    public ResponseEntity<BookResponse> findAllCon(@Parameter @PathVariable int page) {
+    public ResponseEntity<ListResponse> findAllCon(@Parameter @PathVariable int page) {
         log.info("==/findAll");
         return ResponseEntity.ok(bookService.findAll(page));
     }

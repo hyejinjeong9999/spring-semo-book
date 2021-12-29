@@ -1,16 +1,21 @@
 package com.semobook.intercepter;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static com.semobook.common.SemoConstant.SEMO_BOOK_API_AUTHORIZATION;
-
 @Slf4j
 public class Interceptor implements HandlerInterceptor {
+
+//    @Value("${authorization}")
+//    private String authorization1;
+    @Value("${SEMO_BOOK_API_AUTHORIZATION}")
+    private String semoAuthorization2;
+
     //컨트롤러에 도착하기전에 동작하는 메소드로 return값이 true면 진행, false면 stop
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -19,7 +24,7 @@ public class Interceptor implements HandlerInterceptor {
             log.info("Authorization is null");
             return false;
         }
-        if (!authorization.equals(SEMO_BOOK_API_AUTHORIZATION)) {
+        if (!authorization.equals(authorization)) {
             log.info("Authorization fail = {}", authorization);
             return false;
         }

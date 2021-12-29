@@ -4,21 +4,24 @@ import com.semobook.book.domain.Book;
 import com.semobook.book.dto.*;
 import com.semobook.book.repository.BookRepository;
 import com.semobook.book.repository.RedisBookRepository;
+import com.semobook.common.Meta;
+import com.semobook.common.Paging;
 import com.semobook.common.SemoConstant;
 import com.semobook.common.StatusEnum;
+import com.semobook.common.response.ListResponse;
+import com.semobook.common.response.SingleResponse;
+import com.semobook.tools.StringTools;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClientRequest;
-import com.semobook.tools.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -30,11 +33,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BookService {
-    String hMessage;
-    StatusEnum hCode;
-
     private final BookRepository bookRepository;
     private final RedisBookRepository redisBookRepository;
+    @Value("${KAKAO_AK_BOOK_SEARCH}")
+    private String kakaoBookAK;
 
 
     /**
@@ -44,9 +46,9 @@ public class BookService {
      * @since 2021/04/25
      **/
     @Transactional
-    public BookResponse addBook(BookRequest bookRequest) {
-        hMessage = null;
-        hCode = null;
+    public SingleResponse addBook(BookRequest bookRequest) {
+        String hMessage;
+        StatusEnum hCode;
         Book book = null;
         try {
             book = bookRepository.save(Book.builder()
@@ -68,9 +70,8 @@ public class BookService {
             hCode = StatusEnum.hd1004;
         }
 
-        return BookResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+        return SingleResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
                 .data(book)
                 .build();
     }
@@ -82,11 +83,10 @@ public class BookService {
      * @author khh
      * @since 2021/04/25
      **/
-    public BookResponse findBook(String isbn) {
+    public SingleResponse findBook(String isbn) {
         log.info(":: findBook  :: book is {}", isbn);
-
-        hMessage = null;
-        hCode = null;
+        String hMessage;
+        StatusEnum hCode;
         BookDto bookDto = null;
 
         try {
@@ -104,9 +104,9 @@ public class BookService {
             hCode = StatusEnum.hd4444;
             hMessage = "검색 실패";
         }
-        return BookResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+
+        return SingleResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
                 .data(bookDto)
                 .build();
     }
@@ -116,13 +116,12 @@ public class BookService {
      * @author hyunho
      * @since 2021/06/05
      **/
-    public BookResponse findBookWithReview(String isbn) {
+    public SingleResponse findBookWithReview(String isbn) {
         log.info(":: findBookWithReview  :: book is {}", isbn);
-        hMessage = null;
-        hCode = null;
+        String hMessage;
+        StatusEnum hCode;
         BookWithReviewDto bookWithReviewDto = null;
         try {
-//            Book book = bookRepository.findByIsbnWithReview(isbn);
             bookWithReviewDto = new BookWithReviewDto(bookRepository.findByIsbnWithReview(isbn));
 
             if (bookWithReviewDto == null) {
@@ -137,9 +136,8 @@ public class BookService {
             hCode = StatusEnum.hd4444;
             hMessage = "검색 실패";
         }
-        return BookResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+        return SingleResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
                 .data(bookWithReviewDto)
                 .build();
     }
@@ -151,40 +149,59 @@ public class BookService {
      * @author khh
      * @since 2021/04/25
      **/
-    public BookResponse findAll(int pageNum) {
+    public ListResponse findAll(int pageNum) {
+        String hMessage;
+        StatusEnum hCode;
+        List<BookListDto> result = null;
+        List<Book> content;
+        long totalElements = 0;
+        int pageNumber = 0;
+        int totalPage = 0;
+        boolean firstPage = false;
+        boolean nextPageState = false;
 
-        hMessage = null;
-        hCode = null;
-
-        //page처리 적용
-        PageRequest pageRequest = PageRequest.of(pageNum, 5);
-        PageRequest pageAndSortRequest = PageRequest.of(pageNum, 3, Sort.by(Sort.Direction.DESC, "bookName"));
-        Page<Book> page = bookRepository.findAll(pageRequest);
+        try {
+            //page처리 적용
+            PageRequest pageRequest = PageRequest.of(pageNum, 5);
+            PageRequest pageAndSortRequest = PageRequest.of(pageNum, 3, Sort.by(Sort.Direction.DESC, "bookName"));
+            Page<Book> page = bookRepository.findAll(pageRequest);
 //        Slice<Book> page = bookRepository.findAll(pageAndSortRequest);   //limit + 1결과를 반환한다,
 
-        List<Book> content = page.getContent(); //패이지로 가져온
-        long totalElements = page.getTotalElements(); //total count
-        int pageNumber = page.getNumber();  //page number
-        int totalPage = page.getTotalPages();   //total page
-        boolean firstPage = page.isFirst(); //first page
-        boolean nextPageState = page.hasNext(); //다음 페이지 존재 여부
+            content = page.getContent(); //패이지로 가져온
+            totalElements = page.getTotalElements(); //total count
+            pageNumber = page.getNumber();  //page number
+            totalPage = page.getTotalPages();   //total page
+            firstPage = page.isFirst(); //first page
+            nextPageState = page.hasNext(); //다음 페이지 존재 여부
 
-        log.info("page count = " + content.size());
-        log.info("total count = " + totalElements);
-        log.info("page number = " + pageNumber);
-        log.info("total page = " + totalPage);
-        log.info("first page state = " + firstPage);
-        log.info("next page state = " + nextPageState);
+            log.info("page count = " + content.size());
+            log.info("total count = " + totalElements);
+            log.info("page number = " + pageNumber);
+            log.info("total page = " + totalPage);
+            log.info("first page state = " + firstPage);
+            log.info("next page state = " + nextPageState);
 
 //        Slice<Book> slicePage = bookRepository.findAll(pageRequest);  client 단에ㅓ 더보기 기능을 사용할때 slice 를 사용하면 좋다.
-        List<BookListDto> result = page.getContent().stream()
-                .map(b -> new BookListDto(b))
-                .collect(Collectors.toList());
+            result = page.getContent().stream()
+                    .map(b -> new BookListDto(b))
+                    .collect(Collectors.toList());
+            if (result == null) {
+                hCode = StatusEnum.hd4444;
+                hMessage = "도서가 없습니다.";
+            } else {
+                hCode = StatusEnum.hd1004;
+                hMessage = "도서 조회 성공";
+            }
+        } catch (Exception e) {
+            log.info("findBookWithReview :: findAll err :: error is {}", e);
+            hCode = StatusEnum.hd4444;
+            hMessage = "검색 실패";
+        }
 
 
-        return BookResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+        return ListResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
+                .paging(Paging.builder().totalPage(totalPage).pageNumber(pageNumber).totalElements(totalElements).build())
                 .data(result)
                 .build();
     }
@@ -220,10 +237,9 @@ public class BookService {
      * @since 2021/05/26
      **/
     @Transactional
-    public BookResponse deleteBook(String isbn) {
-
-        hMessage = null;
-        hCode = null;
+    public SingleResponse deleteBook(String isbn) {
+        String hMessage;
+        StatusEnum hCode;
 
         try {
             log.info(":: deleteBook  :: book is {}", isbn);
@@ -235,16 +251,14 @@ public class BookService {
             hCode = StatusEnum.hd4444;
             hMessage = "삭제 실패";
         }
-        return BookResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+        return SingleResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
                 .build();
     }
 
     public BookResponse searchBook(BookSearchRequest bookSearchRequest) {
-
-        hMessage = null;
-        hCode = null;
+        String hMessage;
+        StatusEnum hCode;
         Mono<DocumentListDto> responseJson = null;
 
         try {
@@ -258,7 +272,7 @@ public class BookService {
                             .queryParam("page", bookSearchRequest.getPageNum())
                             .queryParam("size", 12)
                             .build()
-                    ).header("Authorization", SemoConstant.KAKAO_AK_BOOK_SEARCH)
+                    ).header("Authorization", kakaoBookAK)
                     .httpRequest(httpRequest -> {
                         HttpClientRequest reactorRequest = httpRequest.getNativeRequest();
                         reactorRequest.responseTimeout(Duration.ofSeconds(2));
@@ -277,7 +291,7 @@ public class BookService {
             hCode = StatusEnum.hd1004;
             hMessage = "검색 성공";
 
-           
+
         } catch (Exception e) {
             log.info(":: searchBook err :: error is {}", e);
             hCode = StatusEnum.hd4444;
@@ -355,7 +369,7 @@ public class BookService {
         BookDto bookDto = null;
         try {
             RedisBook redisBook = redisBookRepository.findById(isbn).orElse(null);
-            if(redisBook != null){
+            if (redisBook != null) {
                 bookDto = BookDto.builder()
                         .contents(redisBook.getContents())
                         .publisher(redisBook.getPublisher())
@@ -418,7 +432,7 @@ public class BookService {
                             .queryParam("page", 1)
                             .queryParam("size", 1)
                             .build()
-                    ).header("Authorization", SemoConstant.KAKAO_AK_BOOK_SEARCH)
+                    ).header("Authorization", kakaoBookAK)
                     .httpRequest(httpRequest -> {
                         HttpClientRequest reactorRequest = httpRequest.getNativeRequest();
                         reactorRequest.responseTimeout(Duration.ofSeconds(2));
@@ -457,6 +471,7 @@ public class BookService {
 
     /**
      * redis에 저장
+     *
      * @param bookDto
      */
 
@@ -476,6 +491,7 @@ public class BookService {
 
     /**
      * db에 저장
+     *
      * @param bookDto
      */
     private void saveDatabase(BookDto bookDto) {
@@ -511,9 +527,9 @@ public class BookService {
      *
      * @author hyunho
      * @since 2021/08/20
-    **/
+     **/
     @Transactional
-    public void updateBookContents(String isbn, String contents){
+    public void updateBookContents(String isbn, String contents) {
         Book book = bookRepository.findByIsbn(isbn);
         book.updateContents(contents);
     }

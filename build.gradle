@@ -42,9 +42,10 @@ dependencies {
     //camelcase를 위한 guava
     compile group: 'com.google.guava', name: 'guava', version: '30.0-jre'
     //swagger
-//    implementation 'org.springdoc:springdoc-openapi-ui:1.5.7'
-    implementation group: 'io.springfox', name: 'springfox-boot-starter', version: '3.0.0'
-    implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '3.0.0'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.5.7'
+//    implementation group: 'io.springfox', name: 'springfox-boot-starter', version: '3.0.0'
+//    implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '3.0.0'
+
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
     compile('org.springframework.boot:spring-boot-starter-data-redis')
