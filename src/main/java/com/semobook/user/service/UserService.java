@@ -1,14 +1,18 @@
 package com.semobook.user.service;
 
 
+import com.semobook.aop.performance.PerformanceCheck;
 import com.semobook.bookReview.domain.AllReview;
 import com.semobook.bookReview.domain.BookReview;
 import com.semobook.bookReview.repository.AllReviewRepository;
 import com.semobook.bookReview.repository.BookReviewRepository;
+import com.semobook.common.Meta;
+import com.semobook.common.Paging;
 import com.semobook.common.SemoConstant;
 import com.semobook.common.StatusEnum;
+import com.semobook.common.response.ListResponse;
+import com.semobook.common.response.SingleResponse;
 import com.semobook.recom.domain.ReviewInfo;
-import com.semobook.aop.performance.PerformanceCheck;
 import com.semobook.tools.SecurityTools;
 import com.semobook.tools.StringTools;
 import com.semobook.user.domain.UserInfo;
@@ -50,24 +54,28 @@ public class UserService {
      * @author hyejinzz
      * @since 2021-05-23
      **/
-    public UserResponse findAllUser(int pageNum) {
+    public ListResponse findAllUser(int pageNum) {
         String hMessage = "";
         StatusEnum hCode = null;
         List<UserInfoDto> result = null;
+        Page<UserInfo> page = null;
         try {
-            Page<UserInfo> page = userRepository.findAll(PageRequest.of(pageNum, 5));
+            page = userRepository.findAll(PageRequest.of(pageNum, 5));
             result = page.getContent().stream()
                     .map(r -> new UserInfoDto(r))
                     .collect(Collectors.toList());
+            hCode = StatusEnum.hd1004;
+            hMessage = "유저 리스트 조회 성공";
         } catch (Exception e) {
             hCode = StatusEnum.hd4444;
             hMessage = "회원조회 실패";
             log.info(":: findAllUser err :: error is {} ", e);
         }
-        return UserResponse.builder()
+
+        return ListResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
+                .paging(Paging.builder().totalPage(page.getTotalPages()).pageNumber(page.getNumber()).totalElements(page.getTotalElements()).build())
                 .data(result)
-                .hCode(hCode)
-                .hMessage(hMessage)
                 .build();
     }
 
@@ -79,7 +87,7 @@ public class UserService {
      * @since 2021-05-23
      **/
     @PerformanceCheck
-    public UserResponse findByUserId(String userId) {
+    public SingleResponse findByUserId(String userId) {
         String hMessage = "";
         StatusEnum hCode = null;
         UserInfoDto userInfoDto = null;
@@ -90,7 +98,7 @@ public class UserService {
                 hMessage = "유효하지 않은 회원정보";
             } else {
                 hCode = StatusEnum.hd1004;
-                hMessage = userId;
+                hMessage = "회원조회 성공";
             }
         } catch (Exception e) {
             hCode = StatusEnum.hd4444;
@@ -98,10 +106,9 @@ public class UserService {
             log.info(":: findByUserId err :: error is {} ", e);
         }
 
-        return UserResponse.builder()
+        return SingleResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
                 .data(userInfoDto)
-                .hCode(hCode)
-                .hMessage(hMessage)
                 .build();
     }
 
@@ -113,7 +120,7 @@ public class UserService {
      * @since 2021-05-23
      **/
     @PerformanceCheck
-    public UserResponse signIn(UserSignInRequest userSignUpRequest) {
+    public SingleResponse signIn(UserSignInRequest userSignUpRequest) {
         String hMessage = "";
         StatusEnum hCode = null;
         UserInfoDto userInfoDto = null;
@@ -140,9 +147,8 @@ public class UserService {
             log.info(":: signIn err :: error is {} ", e);
         }
 
-        return UserResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+        return SingleResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
                 .data(userInfoDto)
                 .build();
     }
@@ -155,7 +161,7 @@ public class UserService {
      * @since 2021-05-23
      **/
     @Transactional
-    public UserResponse signUp(UserSignUpRequest userSignUpRequest) {
+    public SingleResponse signUp(UserSignUpRequest userSignUpRequest) {
         String hMessage = "";
         StatusEnum hCode = null;
         UserInfo userInfo = null;
@@ -176,9 +182,8 @@ public class UserService {
             hCode = StatusEnum.hd4444;
         }
 
-        return UserResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+        return SingleResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
                 .data(userInfo)
                 .build();
 
@@ -199,7 +204,7 @@ public class UserService {
      * @since 2021-05-23
      **/
     @Transactional
-    public UserResponse deleteUser(UserDeleteRequest userDeleteRequest) {
+    public SingleResponse deleteUser(UserDeleteRequest userDeleteRequest) {
         String hMessage = "";
         StatusEnum hCode = null;
         try {
@@ -220,9 +225,9 @@ public class UserService {
             hCode = StatusEnum.hd4444;
             hMessage = "탈퇴 실패";
         }
-        return UserResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+
+        return SingleResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
                 .build();
     }
 
@@ -234,7 +239,7 @@ public class UserService {
      * @since 2021-05-23
      **/
     @Transactional
-    public UserResponse updateUser(UserChangeUserInfoRequest updateUser) {
+    public SingleResponse updateUser(UserChangeUserInfoRequest updateUser) {
         String hMessage = "";
         StatusEnum hCode = null;
         UserInfoDto userInfoDto = null;
@@ -257,9 +262,9 @@ public class UserService {
             hCode = StatusEnum.hd4444;
             hMessage = "정보 수정 실패";
         }
-        return UserResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+
+        return SingleResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
                 .data(userInfoDto)
                 .build();
     }
@@ -271,13 +276,15 @@ public class UserService {
      * @author hyunho
      * @since 2021/06/24
      **/
-    public UserResponse userInfoWithReviewCount(long userNo) {
+    public ListResponse userInfoWithReviewCount(long userNo) {
         String hMessage = "";
         StatusEnum hCode = null;
         UserInfoWithReviewCountDto userInfoWithReviewCountDto = null;
+        Page<BookReview> page = null;
+
         try {
             UserInfo userInfo = userRepository.findByUserNo(userNo);
-            Page<BookReview> page = bookReviewRepository.findAllByUserInfo_userNo(userNo, PageRequest.of(0, 100));
+            page = bookReviewRepository.findAllByUserInfo_userNo(userNo, PageRequest.of(0, 100));
             userInfoWithReviewCountDto = new UserInfoWithReviewCountDto(userInfo.getUserNo(),
                     userInfo.getUserId(),
                     userInfo.getUserName(),
@@ -290,15 +297,16 @@ public class UserService {
             hCode = StatusEnum.hd4444;
             hMessage = "정보 조회 실패";
         }
-        return UserResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+
+        return ListResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
+                .paging(Paging.builder().totalPage(page.getTotalPages()).pageNumber(page.getNumber()).totalElements(page.getTotalElements()).build())
                 .data(userInfoWithReviewCountDto)
                 .build();
     }
 
 
-    public UserResponse getUserReviewInfo(long userNo) {
+    public SingleResponse getUserReviewInfo(long userNo) {
         StatusEnum hCode = null;
         String hMessage = null;
         UserReviewInfo userReviewInfo = null;
@@ -317,9 +325,9 @@ public class UserService {
             hMessage = "getUserPriority 에러";
             log.error(":: getUserPriority err :: error is {} ", e);
         }
-        return UserResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+
+        return SingleResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
                 .data(userReviewInfo)
                 .build();
     }
@@ -438,7 +446,7 @@ public class UserService {
     }
 
 
-    public UserResponse mailSend(MailRequest mailRequest) {
+    public SingleResponse mailSend(MailRequest mailRequest) {
         String hMessage = "";
         StatusEnum hCode = null;
         try {
@@ -459,9 +467,9 @@ public class UserService {
             hCode = StatusEnum.hd4444;
             hMessage = "메일 전송 실패";
         }
-        return UserResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+
+        return SingleResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
                 .data(mailRequest)
                 .build();
     }
@@ -472,7 +480,7 @@ public class UserService {
      * @author juhan
      * @since 2021-07-18
      **/
-    public UserResponse findPw(String userId) {
+    public SingleResponse findPw(String userId) {
         log.info(":: UserService_findId :: userId is {} ", userId);
         String hMessage = "";
         StatusEnum hCode = null;
@@ -509,10 +517,11 @@ public class UserService {
             hMessage = "정보 조회 실패";
         }
 
-        return UserResponse.builder()
-                .hCode(hCode)
-                .hMessage(hMessage)
+        return SingleResponse.builder()
+                .meta(Meta.builder().hMessage(hMessage).hCode(hCode).build())
                 .build();
+
+
     }
 
     /**
