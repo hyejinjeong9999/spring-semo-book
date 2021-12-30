@@ -30,6 +30,7 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     compile group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '2.7.0'
@@ -51,14 +52,15 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-data-redis')
     //Spring WebClient
     compile 'org.springframework.boot:spring-boot-starter-webflux'
-// https://mvnrepository.com/artifact/org.hamcrest/hamcrest
+    // https://mvnrepository.com/artifact/org.hamcrest/hamcrest
     testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.1'
-
 
     //email
 //    implementation 'org.springframework.boot:spring-boot-starter-mail'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '2.2.1.RELEASE'
 
+    //validation
+    implementation "org.springframework.boot:spring-boot-starter-validation"
 }
 
 
