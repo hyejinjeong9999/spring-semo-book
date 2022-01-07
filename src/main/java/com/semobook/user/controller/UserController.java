@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import javax.validation.constraints.Email;
 
 @Slf4j
 @RestController
@@ -28,7 +28,7 @@ public class UserController {
     //모든 회원 조회
     @Operation(description = "모든 회원조회")
     @GetMapping(value = "/users/list/{page}")
-    public ResponseEntity<ListResponse> getUserAllCon(@Parameter @Range(min = 0, max = 100) @PathVariable int page) {
+    public ResponseEntity<ListResponse> getUserAllCon(@Parameter @PathVariable @Range(min = 0, max = 100) int page) {
         return ResponseEntity.ok(userService.findAllUser(page));
     }
 
@@ -36,35 +36,35 @@ public class UserController {
     //id로 회원조회
     @Operation(description = "회원조회")
     @GetMapping(value = "/users/{id}")
-    public ResponseEntity<SingleResponse> getUserByUserIdCon(@Parameter @PathVariable String id) {
+    public ResponseEntity<SingleResponse> getUserByUserIdCon(@Parameter @PathVariable @Email String id) {
         return ResponseEntity.ok(userService.findByUserId(id));
     }
 
     //회원가입
     @Operation(description = "회원가입")
     @PostMapping("/users/new")
-    public ResponseEntity<SingleResponse> signUpCon(@Valid @Parameter @RequestBody UserSignUpRequest userSignUpRequest) {
+    public ResponseEntity<SingleResponse> signUpCon(@Validated @Parameter @RequestBody UserSignUpRequest userSignUpRequest) {
         return ResponseEntity.ok(userService.signUp(userSignUpRequest));
     }
 
     //회원탈퇴
     @Operation(description = "회원탈퇴")
     @DeleteMapping("/users")
-    public ResponseEntity<SingleResponse> deleteUserCon(@Valid @Parameter @RequestBody UserDeleteRequest userDeleteRequest) {
+    public ResponseEntity<SingleResponse> deleteUserCon(@Validated @Parameter @RequestBody UserDeleteRequest userDeleteRequest) {
         return ResponseEntity.ok(userService.deleteUser(userDeleteRequest));
     }
 
     //회원정보 수정
     @Operation(description = "회원정보수정")
     @PutMapping("/users")
-    public ResponseEntity<SingleResponse> updateUserCon(@Valid @Parameter @RequestBody UserChangeUserInfoRequest updateUser) {
+    public ResponseEntity<SingleResponse> updateUserCon(@Validated @Parameter @RequestBody UserChangeUserInfoRequest updateUser) {
         return ResponseEntity.ok(userService.updateUser(updateUser));
     }
 
     //로그인
     @Operation(description = "로그인")
     @PostMapping(value = "/users/signin")
-    public ResponseEntity<SingleResponse> signInCon(@Valid @Parameter @RequestBody UserSignInRequest userSignInRequest) {
+    public ResponseEntity<SingleResponse> signInCon(@Validated @Parameter @RequestBody UserSignInRequest userSignInRequest) {
         return ResponseEntity.ok(userService.signIn(userSignInRequest));
     }
 
@@ -76,7 +76,7 @@ public class UserController {
 
     @Operation(description = "send email")
     @PostMapping("/users/help/email")
-    public ResponseEntity<SingleResponse> sendEmailCon(@Valid @Parameter @RequestBody MailRequest mailRequest){
+    public ResponseEntity<SingleResponse> sendEmailCon(@Validated @Parameter @RequestBody MailRequest mailRequest){
         return ResponseEntity.ok(userService.mailSend(mailRequest));
     }
 
@@ -88,7 +88,7 @@ public class UserController {
 
     @Operation(description = "find pw")
     @GetMapping("/users/help/pwInquiry")
-    public ResponseEntity<SingleResponse> findPwCon(@Parameter @RequestParam(name = "userId") String userId){
+    public ResponseEntity<SingleResponse> findPwCon(@Parameter @RequestParam(name = "userId") @Email String userId){
         return ResponseEntity.ok(userService.findPw(userId));
     }
 

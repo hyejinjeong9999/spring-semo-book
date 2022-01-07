@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 
@@ -11,6 +12,7 @@ import javax.validation.constraints.Pattern;
 @NoArgsConstructor
 public class UserSignUpRequest {
     @NotEmpty
+    @Email(message = "이메일 형식에 맞지 않습니다.")
     @Schema(description = "유저아이디" , example = "0")
     String userId;
     @NotEmpty
